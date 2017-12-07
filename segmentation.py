@@ -1,6 +1,6 @@
 import cv2 
 
-im = '/home/racecar/OCR/HelloWorld.png'
+im = '/home/racecar/OCR/ThisToo.png'
 img = cv2.imread(im, 0)
 
 # white = 0
@@ -59,7 +59,15 @@ class Segmentation:
 					text = True
 				else:
 					current[1] = row_ind
-		return lines
+		img_lines = self.process_lines(thresh_img, lines)
+		return img_lines
+
+	def process_lines(self, img, lines):
+		img_lines = []
+		for line in lines:
+			line_crop_im = img[line[0]:line[1], 0:len(img[0])]
+			img_lines.append(line_crop_im)
+		return img_lines
 
 	def segment_char(self, line):
 		# Split the line into characters
@@ -93,12 +101,15 @@ class Segmentation:
 					char = True
 				else:
 					current[1] = column_ind
-		return chars
+		img_chars = self.process_chars(line, chars)
+		return img_chars
 
-	def process_chars(line, chars):
+	def process_chars(self, line, chars):
 		img_chars = []
 		for char in chars:
-			char_crop_im = line_crop_im[0:len(line_crop_im), char_crop[0]:char_crop[1]]
+			char_crop_im = line[0:len(line), char[0]:char[1]]
+			img_chars.append(char_crop_im)
+		return img_chars
 
 
 if __name__=="__main__":
@@ -108,16 +119,12 @@ if __name__=="__main__":
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 	lines = seg.segment_line(thresh)
-	line_crop = lines[0]
-	line_crop_im = img[line_crop[0]:line_crop[1], 0:len(img[0])]
-	cv2.imshow('line', line_crop_im)
+	cv2.imshow('line', lines[1])
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
-	chars = seg.segment_char(line_crop_im)
-	for char in range(len(chars)):
-		char_crop = chars[char]
-		char_crop_im = line_crop_im[0:len(line_crop_im), char_crop[0]:char_crop[1]]
-		cv2.imshow('char', char_crop_im)
+	chars = seg.segment_char(lines[1])
+	for char in chars:
+		cv2.imshow('char', char)
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
 
