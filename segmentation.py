@@ -86,12 +86,19 @@ class Segmentation:
 			else:
 				if white_space:
 					space.append(current)
+					if current[1]-current[0] >= 30:
+						chars.append(current)
 					current = [column_ind, column_ind]
 					white_space = False
 					char = True
 				else:
 					current[1] = column_ind
 		return chars
+
+	def process_chars(line, chars):
+		img_chars = []
+		for char in chars:
+			char_crop_im = line_crop_im[0:len(line_crop_im), char_crop[0]:char_crop[1]]
 
 
 if __name__=="__main__":
@@ -107,9 +114,10 @@ if __name__=="__main__":
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 	chars = seg.segment_char(line_crop_im)
-	char_crop = chars[3]
-	char_crop_im = line_crop_im[0:len(line_crop_im), char_crop[0]:char_crop[1]]
-	cv2.imshow('char', char_crop_im)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	for char in range(len(chars)):
+		char_crop = chars[char]
+		char_crop_im = line_crop_im[0:len(line_crop_im), char_crop[0]:char_crop[1]]
+		cv2.imshow('char', char_crop_im)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
 
