@@ -38,42 +38,78 @@ class Segmentation:
 		white_space = True
 		lines = []
 		space = []
-		current = []
-		for row in thresh_img:
+		current = [0,0]
+		for row_ind in range(len(img)):
 			# When looking at a row with no text
-			if min(row) == 255:
+			if min(thresh_img[row_ind]) == 255:
 				# If in a block of text, add that line and reset current
 				if text:
 					lines.append(current)
-					current = []
-					current.append(row)
+					current = [row_ind, row_ind]
 					text = False
 					white_space = True
 				else:
-					current.append(row)
+					current[1] = row_ind
 			# When looking at a row with text
 			else:
 				if white_space:
 					space.append(current)
-					current = []
-					current.append(row)
+					current = [row_ind, row_ind]
 					white_space = False
 					text = True
 				else:
-					current.append(row)
+					current[1] = row_ind
 		return lines
+
+	def segment_char(self, line):
+		# Split the line into characters
+		# Takes an image segment as input
+		# returns an array of x start and stop indices
+		char = False
+		white_space = True
+		chars = []
+		space = []
+		current = [0,0]
+		for column_ind in range(len(line[0])):
+			# When looking at a column with no ink
+			column = line[0:len(line), column_ind:(column_ind+1)]
+			if min(column.flatten()) == 255:
+				# If in a block of text, add that line and reset current
+				if char:
+					chars.append(current)
+					current = [column_ind, column_ind]
+					char = False
+					white_space = True
+				else:
+					current[1] = column_ind
+			# When looking at a column with text
+			else:
+				if white_space:
+					space.append(current)
+					current = [column_ind, column_ind]
+					white_space = False
+					char = True
+				else:
+					current[1] = column_ind
+		return chars
 
 
 if __name__=="__main__":
 	seg = Segmentation()
 	thresh = seg.threshold(img)
-	print type(img), 'image type'
 	cv2.imshow('thresh', thresh)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 	lines = seg.segment_line(thresh)
-	print lines
-	cv2.imshow('line', lines)
+	line_crop = lines[0]
+	line_crop_im = img[line_crop[0]:line_crop[1], 0:len(img[0])]
+	cv2.imshow('line', line_crop_im)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
+	chars = seg.segment_char(line_crop_im)
+	char_crop = chars[3]
+	char_crop_im = line_crop_im[0:len(line_crop_im), char_crop[0]:char_crop[1]]
+	cv2.imshow('char', char_crop_im)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
